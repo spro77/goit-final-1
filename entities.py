@@ -1,26 +1,22 @@
 from collections import UserDict
-import re
 from typing import Optional
 from datetime import datetime as dt, timedelta as td
+from validators import *
 
 class Field:
-    def __init__(self, value):
+    def __init__(self, value: str):
         self.value = value
 
     def __str__(self):
         return str(self.value)
 
 class Name(Field):
-    def __init__(self, value): super().__init__(self.__validate_name(value))
-
-    def __validate_name(self, value):
-        if len(value) == 0: raise ValueError('Name is too short, need more than 0 symbol')
-        else: return value 
+    def __init__(self, value: str): super().__init__(length_validator(value))
 
 class Phone(Field):
     pattern = r'[0-9]{10}'
 
-    def __init__(self, value): 
+    def __init__(self, value: str): 
         self.__value = value
         super().__init__(self.__value)
 
@@ -28,22 +24,18 @@ class Phone(Field):
     def value(self): return self.__value
 
     @value.setter
-    def value(self, value): 
-        self.__value = self.__validate_number(value)
-
-    def __validate_number(self, number):
-        if re.fullmatch(self.pattern, number.strip()): return number
-        else: raise ValueError('The "phone number" field must contain 10 digits')
+    def value(self, value: str): 
+        self.__value = phone_number_validator(self.pattern, value)
 
 class Birthday(Field):
-    def __init__(self, value):
+    def __init__(self, value: str):
         try:
             super().__init__(dt.strptime(value, "%d.%m.%Y").date())
         except ValueError:
             raise ValueError("Invalid date format. Use DD.MM.YYYY")
 
 class Record:
-    def __init__(self, name):
+    def __init__(self, name: str):
         self.name = Name(name)
         self.phones = []
         self._birthday = None
@@ -61,7 +53,7 @@ class Record:
     
     def remove_phone(self, number: str): self.phones = list(filter(lambda phone: phone.value!=number, self.phones))
 
-    def edit_phone(self, number: str, new_value):
+    def edit_phone(self, number: str, new_value: str):
         for phone in self.phones:
             if phone.value == number:
                 phone.value = new_value
@@ -121,6 +113,40 @@ class AddressBook(UserDict):
             print('Function argument must be user list.')
             return []
         
+    def __getstate__(self):
+        return self.__dict__
+    
+    def __setstate__(self, state):
+        self.__dict__.update(state)
+
+# Notebook
+class Note(Field):
+    def __init__(self, title: str, value: str):
+        self.title = Name(title)
+        self._tags = []
+        super().__init__(length_validator(value))
+
+    @property
+    def tags(self): return self._tags
+
+    @tags.setter
+    def tags(self, value: str): 
+        if value not in self.tags: 
+            tag = length_validator(value)
+            self.tags.append(tag)
+        else: raise ValueError("The tag is already in the tag list of the note")
+
+
+class NoteBook(UserDict):
+    def add_note(self, note: Note):
+        if isinstance(note, Note):
+            if note.title.value not in self.data: self.data[note.title.value] = note
+            else: raise KeyError(f"The {note.title.value} is already in list of notes")
+        else: raise ValueError(f"The {note} is not instance of Note")
+
+    def find(self, title: str) -> Optional[Record]:
+        if title in self.data: return self.data.get(title)
+
     def __getstate__(self):
         return self.__dict__
     

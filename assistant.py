@@ -3,14 +3,17 @@ from handlers import *
 
 def main():
     try:
-        book = load_data()
+        book = load_adressbook_data()
+        notebook = load_notebook_data()
+
         print("Welcome to the assistant bot!")
         while True:
             user_input = input("Enter a command: ")
             command, *args = parse_input(user_input)
 
             if command in ["close", "exit"]:
-                save_data(book)
+                save_adressbook_data(book)
+                save_notebook_data(notebook)
                 print("Good bye!")
                 break
             elif command == "hello":
@@ -29,11 +32,16 @@ def main():
                 birthdays(book)
             elif command == "all":
                 print(book)
+            elif command == "add-note":
+                print(add_note(args, notebook))
+            elif command == 'show-notes':
+                print(notebook)
             else:
                 print("Invalid command.")
     except:
-        save_data(book)
-        print("Addres book saved")
+        save_adressbook_data(book)
+        save_notebook_data(notebook)
+        print("Addres book and Notebook saved")
         
 if __name__ == '__main__':
     main()
