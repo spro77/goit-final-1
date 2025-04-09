@@ -166,7 +166,7 @@ def search_contact(book: AddressBook) -> str:
 
 @input_error
 def delete_contact( book: AddressBook) -> str:
-    name = input("Enter contact name (mandatory): ")
+    name = input("Enter contact name (mandatory): ").lower()
     record = book.find(name)
     if record:
         book.delete(name)
