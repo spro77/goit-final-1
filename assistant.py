@@ -1,6 +1,7 @@
 from entities import *
 from handlers import *
 
+
 def main():
     try:
         book = load_adressbook_data()
@@ -25,9 +26,9 @@ def main():
             elif command == "phone":
                 print(show_phone(args, book))
             elif command == "add-birthday":
-                print(add_birthday(args,book))
+                print(add_birthday(args, book))
             elif command == "show-birthday":
-                print(show_birthday(args,book))
+                print(show_birthday(args, book))
             elif command == "birthdays":
                 birthdays(book)
             elif command == "all":
@@ -42,6 +43,7 @@ def main():
         save_adressbook_data(book)
         save_notebook_data(notebook)
         print("Addres book and Notebook saved")
-        
+
+
 if __name__ == '__main__':
     main()
