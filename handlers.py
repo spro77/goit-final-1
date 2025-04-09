@@ -27,7 +27,7 @@ def parse_input(user_input):
     return cmd, *args
 
 
-#AdressBook Handlers
+# AdressBook Handlers
 @input_error
 def add_contact(book):
     name = input("Enter contact name (mandatory): ")
@@ -92,14 +92,16 @@ def add_birthday(args, book: AddressBook) -> str:
 def show_birthday(args, book: AddressBook) -> str:
     name, *_ = args
     record = book.find(name)
-    if record: return f"{name}'s birthday is {record.birthday} "
+    if record:
+        return f"{name}'s birthday is {record.birthday} "
     raise KeyError(f"Contact {name} not found.")
 
 
 @input_error
 def birthdays(book: AddressBook):
     for contact in book.get_upcoming_birthdays():
-        print(f"Don't forget to wish {contact['name']} a happy birthday on {contact['congratulation_date']}")
+        print(
+            f"Don't forget to wish {contact['name']} a happy birthday on {contact['congratulation_date']}")
 
 
 def save_adressbook_data(book: AddressBook, filename="addressbook.pkl"):
@@ -115,7 +117,7 @@ def load_adressbook_data(filename="addressbook.pkl"):
         return AddressBook()
 
 
-# NoteBook Handlers 
+# NoteBook Handlers
 def save_notebook_data(notebook: NoteBook, filename="notebook.pkl"):
     with open(filename, "wb") as f:
         pickle.dump(notebook, f)
@@ -145,8 +147,22 @@ def add_note(args, notebook: NoteBook) -> str:
 
 
 # placeholders
-def search_contact(args, book: AddressBook) -> str:
-    pass
+@input_error
+def search_contact(book: AddressBook) -> str:
+    query = input("Enter a name or number to search for: ").lower()
+    results = []
+
+    for name, record in book.data.items():
+        name_match = query in name.lower()
+        phone_match = any(query in phone.value for phone in record.phones)
+
+        if name_match or phone_match:
+            phones = ", ".join(p.value for p in record.phones)
+            birthday_info = record.birthday.value.strftime(
+                '%d.%m.%Y') if record.birthday else ''
+            results.append(f"{name}: {phones}{birthday_info}")
+
+    return "\n".join(results) if results else "No matches found."
 
 
 def delete_contact(args, book: AddressBook) -> str:
@@ -167,4 +183,3 @@ def edit_note(args, notebook: NoteBook) -> str:
 
 def delete_note(args, notebook: NoteBook) -> str:
     pass
-
