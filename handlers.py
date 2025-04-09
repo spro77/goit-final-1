@@ -148,9 +148,14 @@ def add_note(args, notebook: NoteBook) -> str:
 def search_contact(args, book: AddressBook) -> str:
     pass
 
-
-def delete_contact(args, book: AddressBook) -> str:
-    pass
+@input_error
+def delete_contact( book: AddressBook) -> str:
+    name = input("Enter contact name (mandatory): ")
+    record = book.find(name)
+    if record:
+        book.delete(name)
+        return "Contact was deleted"
+    raise KeyError()
 
 
 def list_notes(notebook: NoteBook) -> str:
