@@ -36,7 +36,7 @@ class Email(Field):
 
     def __init__(self, value: str):
         self.__value = value
-        super().__init__(self._value)
+        super().__init__(self.__value)
 
     @property
     def value(self):
@@ -53,6 +53,9 @@ class Birthday(Field):
             super().__init__(dt.strptime(value, "%d.%m.%Y").date())
         except ValueError:
             raise ValueError("Invalid date format. Use DD.MM.YYYY")
+        
+class Adress(Field):
+    def __init__(self, value: str): super().__init__(adress_validator(value))
 
 
 class Record:
@@ -60,6 +63,8 @@ class Record:
         self.name = Name(name)
         self.phones = []
         self._birthday = None
+        self._adress = None
+        self._email = None
 
     @property
     def birthday(self):
@@ -72,6 +77,29 @@ class Record:
         else:
             self._birthday = Birthday(birthday)
 
+    @property
+    def adress(self):
+        return self._adress
+    
+    @adress.setter
+    def adress(self, adress:str):
+        if adress is None:
+            self._adress = None
+        else:
+            self._adress = Adress(adress)
+
+    @property
+    def email(self):
+        return self._email
+    
+    @email.setter
+    def email(self, email: str):
+        if email is None:
+            self._email = None
+        else:
+            self._email = Email(email)
+
+  
     def add_phone(self, number: str): self.phones.append(Phone(number))
 
     def remove_phone(self, number: str): self.phones = list(

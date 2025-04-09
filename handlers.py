@@ -50,14 +50,41 @@ def change_contact( book: AddressBook) -> str:
     record = book.find(name)
     if not record:
         raise KeyError()
+    birthday = input("Do you want to change birthday? (Press a date in DD.MM.YYYY or skip): " )
+    if birthday:
+        try:
+            record.add_birthday(birthday)
+        except ValueError as e:
+            return str(e)
     
-    phone = input("Enter phone to change (mandatory): ")
-    if phone not in [phone.value for phone in record.phones]:
-        return f"The phone {phone} doesn't exist"
+    email = input("Do you want to change email? (Press an email or skip): ").strip().lower()
 
-    new_phone = input("Enter new phone (10 digits): ")
-        
-    record.edit_phone(phone, new_phone)
+    if email:
+        try:
+            record.email = email
+        except ValueError as e:
+            return str(e)
+
+
+    adress = input("Do you want to add an adress? (Press an adress or skip): ").strip().lower()
+    if adress:
+        try:
+            record.adress = adress
+        except ValueError as e:
+            return str(e)
+
+    phone = input("Do you want to change a phone? (Press an old phone or skip): ")
+    if phone:
+
+        if phone not in [phone.value for phone in record.phones]:
+            return f"The phone {phone} doesn't exist"
+    
+        new_phone = input("Enter new phone (10 digits): ")
+        try:
+             record.edit_phone(phone, new_phone)
+        except ValueError as e:
+            return str(e)
+       
     return "Contact changed."
     
     
