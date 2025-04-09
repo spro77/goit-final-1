@@ -48,6 +48,19 @@ def change_contact(args, book: AddressBook) -> str:
     raise SyntaxError(f"Give name, phone and new number of the contact.")
 
 @input_error
+def show_all(book: AddressBook):
+    if not book.data:
+        return 'No contacts saved.'
+
+    result = []
+
+    for name, record in book.data.items():
+        phones = '; '.join(str(phone) for phone in record.phones)
+        birthday_info = f", birthday: {record.birthday.value.strftime('%d.%m.%Y')}" if record.birthday else ''
+        result.append(f'{name}: {phones}{birthday_info}')
+    return "\n".join(result)
+
+@input_error
 def show_phone(args, book: AddressBook):
     name, *_ = args
     record = book.find(name)
