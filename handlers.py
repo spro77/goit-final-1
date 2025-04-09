@@ -45,13 +45,22 @@ def add_contact(book):
 
 
 @input_error
-def change_contact(args, book: AddressBook) -> str:
-    name, phone, new_phone, *_ = args
+def change_contact( book: AddressBook) -> str:
+    name = input("Enter contact name (mandatory): ").lower()
     record = book.find(name)
-    if record:
-        record.edit_phone(phone, new_phone)
-        return "Contact changed."
-    raise SyntaxError(f"Give name, phone and new number of the contact.")
+    if not record:
+        raise KeyError()
+    
+    phone = input("Enter phone to change (mandatory): ")
+    if phone not in [phone.value for phone in record.phones]:
+        return f"The phone {phone} doesn't exist"
+
+    new_phone = input("Enter new phone (10 digits): ")
+        
+    record.edit_phone(phone, new_phone)
+    return "Contact changed."
+    
+    
 
 
 @input_error
