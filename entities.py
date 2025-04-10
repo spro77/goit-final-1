@@ -1,9 +1,8 @@
+from validators import *
 from collections import UserDict
 from datetime import datetime as dt, timedelta as td
 from colorama import Fore, Style, init
 init(autoreset=True)
-
-from validators import *
 
 
 class Field:
@@ -146,11 +145,13 @@ class Record:
             self._email = None
 
     def __str__(self):
-        info = [f"{Fore.LIGHTBLACK_EX}Name:{Style.RESET_ALL} {Style.BRIGHT}{self.name.value}{Style.RESET_ALL}"]
+        info = [
+            f"{Fore.LIGHTBLACK_EX}Name:{Style.RESET_ALL} {Style.BRIGHT}{self.name.value}{Style.RESET_ALL}"]
 
         if self.birthday:
             bd_str = self.birthday.value.strftime('%d.%m.%Y')
-            info.append(f"{Fore.LIGHTBLACK_EX}bd:{Style.RESET_ALL} {Style.BRIGHT}{bd_str}{Style.RESET_ALL}")
+            info.append(
+                f"{Fore.LIGHTBLACK_EX}bd:{Style.RESET_ALL} {Style.BRIGHT}{bd_str}{Style.RESET_ALL}")
 
         if self._phone:
             info.append(
@@ -189,7 +190,7 @@ class AddressBook(UserDict):
         else:
             raise KeyError(f'{name} is absent in contact list')
 
-    def get_upcoming_birthdays(self) -> list:
+    def get_upcoming_birthdays(self, days: int = 7) -> list:
         try:
             birthday_people = []
             current_day = dt.today().date()
@@ -206,7 +207,7 @@ class AddressBook(UserDict):
 
                     next_congratulations_weekday = next_congratulations.weekday()
 
-                    if 0 <= difference <= 7:
+                    if 0 <= difference <= days:
                         if next_congratulations_weekday == 6:
                             next_congratulations += td(days=1)
                         elif next_congratulations_weekday == 5:
