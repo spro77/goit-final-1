@@ -216,6 +216,9 @@ class AddressBook(UserDict):
                             next_congratulations, "%Y.%m.%d")
                         birthday_people.append(
                             {"name": user, "congratulation_date": congratulations_date})
+
+            birthday_people.sort(key=lambda x: x["congratulation_date"])
+
             return birthday_people
         except Exception as e:
             print('Function argument must be user list.')
