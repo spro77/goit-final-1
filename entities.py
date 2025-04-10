@@ -235,9 +235,9 @@ class AddressBook(UserDict):
 
 
 class Note(Field):
-    def __init__(self, title: str, value: str):
-        self.title = Name(title)
-        self._tags = []
+    def __init__(self, title: str, value: str, tags: list = None):
+        self._title = Name(title)
+        self._tags = tags if tags is not None else []
         super().__init__(length_validator(value))
 
     @property
@@ -251,7 +251,14 @@ class Note(Field):
             self.tags.append(tag)
         else:
             raise ValueError("The tag is already in the tag list of the note")
+    
+    @property
+    def title(self):
+        return self._title
 
+    @title.setter
+    def title(self, value: str):
+        self._title = Name(value) 
 
 class NoteBook(UserDict):
     def add_note(self, note: Note):
@@ -273,3 +280,15 @@ class NoteBook(UserDict):
 
     def __setstate__(self, state):
         self.__dict__.update(state)
+
+    def show_notes(self):
+        print(self.data)
+        notes = self.data
+        if not notes:
+            print("No notes available.")
+            return self
+        
+        print("Available notes:")
+        for i, note in enumerate(notes.values()):
+            tags = ', '.join(note.tags) if note.tags else ">>> NO TAGS HERE <<<"
+            print(f"{i}: Title: {note.title.value}, Value: {note.value}, Tags: {tags}")

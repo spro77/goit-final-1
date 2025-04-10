@@ -211,23 +211,41 @@ def load_notebook_data(filename="notebook.pkl"):
     except FileNotFoundError:
         return NoteBook()
 
-
 @input_error
-def add_note(args, notebook: NoteBook) -> str:
-    title = " ".join(args)
+def add_note(notebook: NoteBook) -> str:
+    title = safe_input('Input value for the title of the note: ')
+    if title is None:
+        return "Note creation cancelled."
+
     note = notebook.find(title)
-    message = "Note is already in notebook"
-    if note is None:
-        text = input("Write the note description: ")
-        print(text)
-        note = Note(title, text)
-        notebook.add_note(note)
-        # isNeedAddTag = input("Do you want to add a tag to note? (y/n): ")
-        message = 'Note added.'
-    return message
+    if note is not None:
+        return "Note is already in notebook"
 
+    text = safe_input("Write the note description: ")
+    if text is None:
+        return "Note creation cancelled."
 
-@input_error
+    note = Note(title, text)
+    notebook.add_note(note)
+
+    is_need_add_tag = safe_input("Do you want to add a tag to the note? (y/n): ")
+    if is_need_add_tag is None:
+        return "Note created."
+
+    if is_need_add_tag.strip().lower() == 'y':
+        while True:
+            new_tag = safe_input("Enter a new tag (or press Enter to stop): ", allow_empty=True)
+            if new_tag is None:
+                return "Note created."
+            if not new_tag:
+                break
+            try:
+                note.tags.append(new_tag)
+            except ValueError as e:
+                print(e)
+
+    return "Note added."
+
 @input_error
 def search_contact(book: AddressBook) -> str:
     query = safe_input(
@@ -259,16 +277,118 @@ def delete_contact(book: AddressBook) -> str:
 
 
 # placeholders
-def list_notes(notebook: NoteBook) -> str:
-    pass
-
+def list_notes(notebook: NoteBook):
+    notebook.show_notes()
+    return
 
 def search_notes(args, notebook: NoteBook) -> str:
     pass
 
+def edit_note(notebook: NoteBook) -> Optional[str]:
+    notes = notebook.data
+    notebook.show_notes()
+    if not notes:
+        return "No notes to edit."
 
-def edit_note(args, notebook: NoteBook) -> str:
-    pass
+    selected_index_input = safe_input("Enter the number of the note you want to edit: ")
+    if selected_index_input is None:
+        return "Edit cancelled."
+
+    try:
+        selected_index = int(selected_index_input)
+        note = list(notes.values())[selected_index]
+    except (ValueError, IndexError):
+        print("Invalid selection.")
+        return
+
+    print(f"\nEditing note: {note.title.value}")
+
+    if safe_input("Do you want to change the title? (y/n): ") == 'y':
+        new_title = safe_input("Set new value for title: ")
+        if new_title is None:
+            return "Edit cancelled."
+        note.title = length_validator(new_title)
+
+    if safe_input("Do you want to change the note description? (y/n): ") == 'y':
+        new_description = safe_input("Set new value for note: ")
+        if new_description is None:
+            return "Edit cancelled."
+        note.value = length_validator(new_description)
+
+    if safe_input("Do you want to update tags? (y/n): ") == 'y':
+        while True:
+            print("\nWhat do you want to do with tags?")
+            print("1: Add tags")
+            print("2: Change existing tags")
+            print("3: Delete tags")
+            action = safe_input("Select an option (1/2/3): ")
+            if action is None:
+                return "Edit cancelled."
+
+            if action == '1':
+                while True:
+                    new_tag = safe_input("Enter a new tag (or press Enter to stop): ", allow_empty=True)
+                    if new_tag is None:
+                        return "Edit cancelled."
+                    if not new_tag:
+                        break
+                    try:
+                        note.tags.append(new_tag)
+                    except ValueError as e:
+                        print(e)
+                break
+
+            elif action == '2':
+                if not note.tags:
+                    print("No tags available to change.")
+                    break
+
+                for idx, tag in enumerate(note.tags):
+                    print(f"{idx}: {tag}")
+
+                tag_index_input = safe_input("Select the number of the tag to change: ")
+                if tag_index_input is None:
+                    return "Edit cancelled."
+
+                try:
+                    tag_index = int(tag_index_input)
+                    if tag_index < 0 or tag_index >= len(note.tags):
+                        print("Invalid tag number.")
+                        continue
+                    new_tag_value = safe_input("Enter new value for the tag: ")
+                    if new_tag_value is None:
+                        return "Edit cancelled."
+                    note.tags[tag_index] = new_tag_value
+                except (ValueError, IndexError):
+                    print("Invalid selection.")
+                    continue
+                break
+
+            elif action == '3':
+                if not note.tags:
+                    print("No tags available to delete.")
+                    break
+
+                for idx, tag in enumerate(note.tags):
+                    print(f"{idx}: {tag}")
+
+                tag_index_input = safe_input("Select the number of the tag to delete: ")
+                if tag_index_input is None:
+                    return "Edit cancelled."
+
+                try:
+                    tag_index = int(tag_index_input)
+                    if tag_index < 0 or tag_index >= len(note.tags):
+                        print("Invalid tag number.")
+                        continue
+                    deleted_tag = note.tags.pop(tag_index)
+                    print(f"Tag '{deleted_tag}' has been deleted.")
+                except (ValueError, IndexError):
+                    print("Invalid selection.")
+                    continue
+                break
+
+    return "Note updated."
 
 
 def delete_note(args, notebook: NoteBook) -> str:
