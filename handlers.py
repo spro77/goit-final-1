@@ -88,11 +88,9 @@ def show_all(book: AddressBook):
         return 'No contacts saved.'
 
     result = []
+    for _, record in book.data.items():
+        result.append(str(record))
 
-    for name, record in book.data.items():
-        phones = '; '.join(str(phone) for phone in record.phones)
-        birthday_info = f", birthday: {record.birthday.value.strftime('%d.%m.%Y')}" if record.birthday else ''
-        result.append(f'{name}: {phones}{birthday_info}')
     return "\n".join(result)
 
 

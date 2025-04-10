@@ -1,6 +1,8 @@
 from collections import UserDict
-from typing import Optional
 from datetime import datetime as dt, timedelta as td
+from colorama import Fore, Style, init
+init(autoreset=True)
+
 from validators import *
 
 
@@ -125,8 +127,45 @@ class Record:
     def add_birthday(self, birthday: str):
         self.birthday = birthday
 
+    def __getstate__(self):
+        return self.__dict__.copy()
+
+    def __setstate__(self, state):
+        self.__dict__.clear()
+        self.__dict__.update(state)
+
+        # Initialize any missing attributes to prevent attribute errors
+        if not hasattr(self, 'name'):
+            self.name = None
+        if not hasattr(self, 'phones'):
+            self.phones = []
+        if not hasattr(self, '_birthday'):
+            self._birthday = None
+        if not hasattr(self, '_address'):
+            self._address = None
+        if not hasattr(self, '_email'):
+            self._email = None
+
     def __str__(self):
-        return f"Contact name: {self.name.value}, phones: {'; '.join(p.value for p in self.phones)}"
+        info = [f"{Fore.LIGHTBLACK_EX}Name:{Style.RESET_ALL} {Style.BRIGHT}{self.name.value}{Style.RESET_ALL}"]
+
+        if self.birthday:
+            bd_str = self.birthday.value.strftime('%d.%m.%Y')
+            info.append(f"{Fore.LIGHTBLACK_EX}bd:{Style.RESET_ALL} {Style.BRIGHT}{bd_str}{Style.RESET_ALL}")
+
+        if self.phones:
+            phones_str = '; '.join(phone.value for phone in self.phones)
+            info.append(f"{Fore.LIGHTBLACK_EX}phone:{Style.RESET_ALL} {Style.BRIGHT}{phones_str}{Style.RESET_ALL}")
+
+        if self.email:
+            info.append(
+                f"{Fore.LIGHTBLACK_EX}email:{Style.RESET_ALL} {Style.BRIGHT}{self.email.value}{Style.RESET_ALL}")
+
+        if self.address:
+            info.append(
+                f"{Fore.LIGHTBLACK_EX}address:{Style.RESET_ALL} {Style.BRIGHT}{self.address.value}{Style.RESET_ALL}")
+
+        return ', '.join(info)
 
 
 class AddressBook(UserDict):
