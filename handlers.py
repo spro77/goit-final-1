@@ -27,7 +27,6 @@ def parse_input(user_input):
     return cmd, *args
 
 
-# AdressBook Handlers
 @input_error
 def add_contact(book):
     name = input("Enter contact name (mandatory): ")
@@ -45,49 +44,42 @@ def add_contact(book):
 
 
 @input_error
-def change_contact( book: AddressBook) -> str:
+def change_contact(book: AddressBook) -> str:
     name = input("Enter contact name (mandatory): ").lower()
     record = book.find(name)
+
     if not record:
         raise KeyError()
-    birthday = input("Do you want to change birthday? (Press a date in DD.MM.YYYY or skip): " )
+
+    birthday = input("Change birthday? (enter as DD.MM.YYYY or skip): ")
     if birthday:
         try:
             record.add_birthday(birthday)
         except ValueError as e:
             return str(e)
-    
-    email = input("Do you want to change email? (Press an email or skip): ").strip().lower()
 
+    email = input("Change email? (enter or skip): ").strip().lower()
     if email:
         try:
             record.email = email
         except ValueError as e:
             return str(e)
 
-
-    adress = input("Do you want to add an adress? (Press an adress or skip): ").strip().lower()
-    if adress:
+    address = input("Change address? (enter or skip): ").strip().lower()
+    if address:
         try:
-            record.adress = adress
+            record.address = address
         except ValueError as e:
             return str(e)
 
-    phone = input("Do you want to change a phone? (Press an old phone or skip): ")
+    phone = input("Change phone number? (enter or skip): ")
     if phone:
-
-        if phone not in [phone.value for phone in record.phones]:
-            return f"The phone {phone} doesn't exist"
-    
-        new_phone = input("Enter new phone (10 digits): ")
         try:
-             record.edit_phone(phone, new_phone)
+            record.edit_phone(phone)
         except ValueError as e:
             return str(e)
-       
+
     return "Contact changed."
-    
-    
 
 
 @input_error
@@ -105,47 +97,18 @@ def show_all(book: AddressBook):
 
 
 @input_error
-def show_phone(args, book: AddressBook):
-    name, *_ = args
-    record = book.find(name)
-    if record:
-        phones = ", ".join([phone.value for phone in record.phones])
-        return phones
-    raise KeyError()
-
-
-@input_error
-def add_birthday(args, book: AddressBook) -> str:
-    name, date, *_ = args
-    record = book.find(name)
-    if record:
-        record.add_birthday(date)
-        return f"Birthday added to Contact: {name}"
-    raise KeyError(f"Contact {name} not found.")
-
-
-@input_error
-def show_birthday(args, book: AddressBook) -> str:
-    name, *_ = args
-    record = book.find(name)
-    if record:
-        return f"{name}'s birthday is {record.birthday} "
-    raise KeyError(f"Contact {name} not found.")
-
-
-@input_error
 def birthdays(book: AddressBook):
     for contact in book.get_upcoming_birthdays():
         print(
             f"Don't forget to wish {contact['name']} a happy birthday on {contact['congratulation_date']}")
 
 
-def save_adressbook_data(book: AddressBook, filename="addressbook.pkl"):
+def save_addressbook_data(book: AddressBook, filename="addressbook.pkl"):
     with open(filename, "wb") as f:
         pickle.dump(book, f)
 
 
-def load_adressbook_data(filename="addressbook.pkl"):
+def load_addressbook_data(filename="addressbook.pkl"):
     try:
         with open(filename, "rb") as f:
             return pickle.load(f)
@@ -182,7 +145,6 @@ def add_note(args, notebook: NoteBook) -> str:
     return message
 
 
-# placeholders
 @input_error
 def search_contact(book: AddressBook) -> str:
     query = input("Enter a name or number to search for: ").lower()
@@ -200,9 +162,10 @@ def search_contact(book: AddressBook) -> str:
 
     return "\n".join(results) if results else "No matches found."
 
+
 @input_error
-def delete_contact( book: AddressBook) -> str:
-    name = input("Enter contact name (mandatory): ").lower()
+def delete_contact(book: AddressBook) -> str:
+    name = input("Enter contact name: ").lower()
     record = book.find(name)
     if record:
         book.delete(name)
@@ -210,6 +173,7 @@ def delete_contact( book: AddressBook) -> str:
     raise KeyError()
 
 
+# placeholders
 def list_notes(notebook: NoteBook) -> str:
     pass
 

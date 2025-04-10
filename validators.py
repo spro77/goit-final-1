@@ -23,7 +23,7 @@ def email_validator(pattern: str, email: str) -> str:
         raise ValueError("Invalid email format.")
 
 
-def adress_validator(value: str) -> Optional[str]:
+def address_validator(value: str) -> Optional[str]:
     if len(value) < 4:
         raise ValueError("Value has to be more than 4 letters")
     else:

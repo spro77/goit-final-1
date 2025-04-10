@@ -2,7 +2,7 @@
 import handlers
 
 def main():
-    current_book = handlers.load_adressbook_data()
+    current_book = handlers.load_addressbook_data()
     current_notebook = handlers.load_notebook_data()
 
     commands = {
@@ -20,13 +20,11 @@ def main():
         "0": ("exit", None)
     }
 
-    def print_menu():
-        print("\nMenu:")
-        for key, (desc, _) in commands.items():
-            print(f"  {int(key):>2}. {desc}")
+    print("\nMenu:")
+    for key, (desc, _) in commands.items():
+        print(f"  {int(key):>2}. {desc}")
 
     while True:
-        print_menu()
         choice = input("Enter your choice: ").strip()
         if choice not in commands:
             print("Invalid selection. Try again.")
@@ -34,7 +32,7 @@ def main():
 
         desc, handler = commands[choice]
         if choice == "0":
-            handlers.save_adressbook_data(current_book)
+            handlers.save_addressbook_data(current_book)
             print("Data saved. Goodbye!")
             break
 

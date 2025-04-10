@@ -4,7 +4,7 @@ from handlers import *
 
 def main():
     try:
-        book = load_adressbook_data()
+        book = load_addressbook_data()
         notebook = load_notebook_data()
 
         print("Welcome to the assistant bot!")
@@ -13,7 +13,7 @@ def main():
             command, *args = parse_input(user_input)
 
             if command in ["close", "exit"]:
-                save_adressbook_data(book)
+                save_addressbook_data(book)
                 save_notebook_data(notebook)
                 print("Good bye!")
                 break
@@ -40,7 +40,7 @@ def main():
             else:
                 print("Invalid command.")
     except:
-        save_adressbook_data(book)
+        save_addressbook_data(book)
         save_notebook_data(notebook)
         print("Addres book and Notebook saved")
 

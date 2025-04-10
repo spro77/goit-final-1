@@ -53,9 +53,10 @@ class Birthday(Field):
             super().__init__(dt.strptime(value, "%d.%m.%Y").date())
         except ValueError:
             raise ValueError("Invalid date format. Use DD.MM.YYYY")
-        
-class Adress(Field):
-    def __init__(self, value: str): super().__init__(adress_validator(value))
+
+
+class Address(Field):
+    def __init__(self, value: str): super().__init__(address_validator(value))
 
 
 class Record:
@@ -63,7 +64,7 @@ class Record:
         self.name = Name(name)
         self.phones = []
         self._birthday = None
-        self._adress = None
+        self._address = None
         self._email = None
 
     @property
@@ -78,20 +79,20 @@ class Record:
             self._birthday = Birthday(birthday)
 
     @property
-    def adress(self):
-        return self._adress
-    
-    @adress.setter
-    def adress(self, adress:str):
-        if adress is None:
-            self._adress = None
+    def address(self):
+        return self._address
+
+    @address.setter
+    def address(self, address: str):
+        if address is None:
+            self._address = None
         else:
-            self._adress = Adress(adress)
+            self._address = Address(address)
 
     @property
     def email(self):
         return self._email
-    
+
     @email.setter
     def email(self, email: str):
         if email is None:
@@ -99,11 +100,12 @@ class Record:
         else:
             self._email = Email(email)
 
-  
-    def add_phone(self, number: str): self.phones.append(Phone(number))
+    def add_phone(self, number: str):
+        self.phones.append(Phone(number))
 
-    def remove_phone(self, number: str): self.phones = list(
-        filter(lambda phone: phone.value != number, self.phones))
+    def remove_phone(self, number: str):
+        self.phones = list(
+            filter(lambda phone: phone.value != number, self.phones))
 
     def edit_phone(self, number: str, new_value: str):
         for phone in self.phones:
@@ -185,6 +187,7 @@ class AddressBook(UserDict):
     def __setstate__(self, state):
         self.__dict__.update(state)
 
+
 # Notebook
 
 
@@ -195,7 +198,8 @@ class Note(Field):
         super().__init__(length_validator(value))
 
     @property
-    def tags(self): return self._tags
+    def tags(self):
+        return self._tags
 
     @tags.setter
     def tags(self, value: str):
