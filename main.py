@@ -5,6 +5,13 @@ def main():
     current_book = handlers.load_addressbook_data()
     current_notebook = handlers.load_notebook_data()
 
+    def print_menu(_=None):
+        menu_text = "\nContact Manager:"
+        for key, (desc, _) in commands.items():
+            menu_text += f"\n  {key:>2}. {desc}"
+        menu_text += "\n"
+        return menu_text
+
     commands = {
         "1": ("add contact", handlers.add_contact),
         "2": ("list contacts", handlers.show_all),
@@ -17,15 +24,14 @@ def main():
         "9": ("search note", handlers.search_notes),
         "10": ("edit note", handlers.edit_note),
         "11": ("delete note", handlers.delete_note),
-        "0": ("exit", None)
+        "0": ("exit", None),
+        "?": ("help", print_menu),
     }
 
-    print("\nMenu:")
-    for key, (desc, _) in commands.items():
-        print(f"  {int(key):>2}. {desc}")
+    print(print_menu())
 
     while True:
-        choice = input("Enter your choice: ").strip()
+        choice = input("Main Menu: ").strip()
         if choice not in commands:
             print("Invalid selection. Try again.")
             continue

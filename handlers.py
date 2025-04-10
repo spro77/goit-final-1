@@ -1,6 +1,9 @@
+from colorama import Fore, Style
 from entities import *
 import pickle
 
+# Global constants
+INDENT = 11  # Number of spaces for indentation
 
 # Decorators
 def input_error(func):
@@ -8,15 +11,31 @@ def input_error(func):
         try:
             return func(*args, **kwargs)
         except ValueError:
-            return "Give me name and phone(10 digits) please."
+            return f"{' ' * INDENT}{Style.DIM}{Fore.WHITE}Give me name and phone(10 digits) please.{Style.RESET_ALL}"
         except KeyError:
-            return "Contact doesn't exists in your contact list."
+            return f"{' ' * INDENT}{Style.DIM}{Fore.WHITE}Contact doesn't exist in your contact list.{Style.RESET_ALL}"
         except IndexError:
-            return "Enter the argument for the command."
+            return f"{' ' * INDENT}{Style.DIM}{Fore.WHITE}Enter the argument for the command.{Style.RESET_ALL}"
         except Exception as e:
-            return e
+            return f"{' ' * INDENT}{Style.DIM}{Fore.WHITE}{str(e)}{Style.RESET_ALL}"
 
     return inner
+
+
+def safe_input(prompt, allow_empty=False):
+    """Custom input function that allows returning to the main menu"""
+    indented_prompt = " " * INDENT + prompt
+    user_input = input(f"{indented_prompt} ('/' to return to menu): ").strip()
+
+    if user_input == '/':
+        print(" " * INDENT + f"{Style.DIM}{Fore.WHITE}Operation cancelled.{Style.RESET_ALL}")
+        return None
+
+    if not user_input and not allow_empty:
+        print(" " * INDENT + "This field cannot be empty. Please try again or type '/' to return to menu.")
+        return safe_input(prompt, allow_empty)
+
+    return user_input
 
 
 # General Handlers
@@ -28,68 +47,121 @@ def parse_input(user_input):
 
 
 @input_error
-def add_contact(book):
-    name = input("Enter contact name (mandatory): ")
-    phone = input("Enter phone (10 digits): ")
-    record = book.find(name)
-    if record is None:
-        record = Record(name)
-        book.add_record(record)
-        message = "Contact added."
-    else:
-        message = "Contact updated."
-    if phone:
-        record.add_phone(phone)
-    return message
+def add_contact(book) -> str:
+    name = safe_input("Enter contact name (mandatory)", allow_empty=False)
+    if name is None:
+        return ""
 
+    record = Record(name)
 
-@input_error
-def change_contact(book: AddressBook) -> str:
-    name = input("Enter contact name (mandatory): ").lower()
-    record = book.find(name)
+    while True:
+        phone = safe_input("Enter phone (10 digits)", allow_empty=True)
+        if phone is None:
+            return ""
+        if not phone:
+            break
+        try:
+            record.add_phone(phone)
+            break
+        except ValueError as e:
+            print(f"{' ' * INDENT}{e}")
 
-    if not record:
-        raise KeyError()
-
-    birthday = input("Change birthday? (enter as DD.MM.YYYY or skip): ")
+    birthday = safe_input("Enter birthday (DD.MM.YYYY)", allow_empty=True)
+    if birthday is None:
+        return ""
     if birthday:
         try:
             record.add_birthday(birthday)
         except ValueError as e:
-            return str(e)
+            return " " * INDENT + str(e)
 
-    email = input("Change email? (enter or skip): ").strip().lower()
+    email = safe_input("Enter email", allow_empty=True)
+    if email is None:
+        return ""
     if email:
         try:
             record.email = email
         except ValueError as e:
-            return str(e)
+            return " " * INDENT + str(e)
 
-    address = input("Change address? (enter or skip): ").strip().lower()
+    address = safe_input("Enter address", allow_empty=True)
+    if address is None:
+        return ""
     if address:
         try:
             record.address = address
         except ValueError as e:
-            return str(e)
+            return " " * INDENT + str(e)
 
-    phone = input("Change phone number? (enter or skip): ")
-    if phone:
+    try:
+        book.add_record(record)
+        return " " * INDENT + "Contact added."
+    except KeyError:
+        # This should be caught by our input_error decorator
+        # which will display "Contact exists in your contact list"
+        raise
+
+
+@input_error
+def change_contact(book: AddressBook) -> str:
+    name = safe_input("Enter contact name", allow_empty=False)
+    if name is None:
+        return ""
+
+    record = book.find(name)
+    if not record:
+        raise KeyError()
+
+    birthday = safe_input("Change birthday? (enter as DD.MM.YYYY or skip)", allow_empty=True)
+    if birthday is None:
+        return ""
+    if birthday:
+        try:
+            record.add_birthday(birthday)
+        except ValueError as e:
+            return " " * INDENT + str(e)
+
+    email = safe_input("Change email? (enter or skip)", allow_empty=True)
+    if email is None:
+        return ""
+    if email:
+        try:
+            record.email = email
+        except ValueError as e:
+            return " " * INDENT + str(e)
+
+    address = safe_input("Change address? (enter or skip)", allow_empty=True)
+    if address is None:
+        return ""
+    if address:
+        try:
+            record.address = address
+        except ValueError as e:
+            return " " * INDENT + str(e)
+
+    while True:
+        phone = safe_input("Change phone number? (enter or skip)", allow_empty=True)
+        if phone is None:
+            return ""
+        if not phone:
+            break
         try:
             record.edit_phone(phone)
+            break
         except ValueError as e:
-            return str(e)
+            print(f"{' ' * INDENT}{e}")
 
-    return "Contact changed."
+    return " " * INDENT + "Contact changed."
 
 
 @input_error
 def show_all(book: AddressBook):
     if not book.data:
-        return 'No contacts saved.'
+        return ' ' * INDENT + 'No contacts saved.'
 
     result = []
     for _, record in book.data.items():
-        result.append(str(record))
+        result.append(' ' * INDENT + str(record))
 
     return "\n".join(result)
 
@@ -144,21 +216,23 @@ def add_note(args, notebook: NoteBook) -> str:
 
 
 @input_error
+@input_error
 def search_contact(book: AddressBook) -> str:
-    query = input("Enter a name or number to search for: ").lower()
+    query = safe_input("Enter a name or number to search for", allow_empty=False)
+    if query is None:
+        return ""
+
+    query = query.lower()
     results = []
 
     for name, record in book.data.items():
         name_match = query in name.lower()
-        phone_match = any(query in phone.value for phone in record.phones)
+        phone_match = record.phone and query in record.phone.value.lower()
 
         if name_match or phone_match:
-            phones = ", ".join(p.value for p in record.phones)
-            birthday_info = record.birthday.value.strftime(
-                '%d.%m.%Y') if record.birthday else ''
-            results.append(f"{name}: {phones}{birthday_info}")
+            results.append(" " * INDENT + str(record))
 
-    return "\n".join(results) if results else "No matches found."
+    return "\n".join(results) if results else " " * INDENT + "No matches found."
 
 
 @input_error

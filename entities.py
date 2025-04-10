@@ -64,10 +64,21 @@ class Address(Field):
 class Record:
     def __init__(self, name: str):
         self.name = Name(name)
-        self.phones = []
+        self._phone = None
         self._birthday = None
         self._address = None
         self._email = None
+
+    @property
+    def phone(self):
+        return self._phone
+
+    @phone.setter
+    def phone(self, number: str):
+        if number is None:
+            self._phone = None
+        else:
+            self._phone = Phone(number)
 
     @property
     def birthday(self):
@@ -103,26 +114,14 @@ class Record:
             self._email = Email(email)
 
     def add_phone(self, number: str):
-        self.phones.append(Phone(number))
+        self._phone = Phone(number)
 
-    def remove_phone(self, number: str):
-        self.phones = list(
-            filter(lambda phone: phone.value != number, self.phones))
+    def remove_phone(self):
+        self._phone = None
 
-    def edit_phone(self, number: str, new_value: str):
-        for phone in self.phones:
-            if phone.value == number:
-                phone.value = new_value
-                return True
-
-        raise KeyError(f'Phone number: {number} not found')
-
-    def find_phone(self, number: str) -> Optional[Phone]:
-        for phone in self.phones:
-            if phone.value == number:
-                return phone
-
-        raise KeyError(f'Phone number: {number} not found')
+    def edit_phone(self, new_value: str):
+        # Now only takes one parameter - the new value
+        self._phone = Phone(new_value)
 
     def add_birthday(self, birthday: str):
         self.birthday = birthday
@@ -137,8 +136,8 @@ class Record:
         # Initialize any missing attributes to prevent attribute errors
         if not hasattr(self, 'name'):
             self.name = None
-        if not hasattr(self, 'phones'):
-            self.phones = []
+        if not hasattr(self, '_phone'):
+            self._phone = None
         if not hasattr(self, '_birthday'):
             self._birthday = None
         if not hasattr(self, '_address'):
@@ -153,9 +152,9 @@ class Record:
             bd_str = self.birthday.value.strftime('%d.%m.%Y')
             info.append(f"{Fore.LIGHTBLACK_EX}bd:{Style.RESET_ALL} {Style.BRIGHT}{bd_str}{Style.RESET_ALL}")
 
-        if self.phones:
-            phones_str = '; '.join(phone.value for phone in self.phones)
-            info.append(f"{Fore.LIGHTBLACK_EX}phone:{Style.RESET_ALL} {Style.BRIGHT}{phones_str}{Style.RESET_ALL}")
+        if self._phone:
+            info.append(
+                f"{Fore.LIGHTBLACK_EX}phone:{Style.RESET_ALL} {Style.BRIGHT}{self._phone.value}{Style.RESET_ALL}")
 
         if self.email:
             info.append(
@@ -180,8 +179,9 @@ class AddressBook(UserDict):
             raise ValueError(f"The {record} is not instance of Record")
 
     def find(self, name: str) -> Optional[Record]:
-        if name in self.data:
-            return self.data.get(name)
+        for contact_name, record in self.data.items():
+            if contact_name.lower() == name.lower():
+                return record
 
     def delete(self, name: str) -> Optional[Record]:
         if name in self.data:
