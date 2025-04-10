@@ -1,3 +1,4 @@
+from curses.ascii import isdigit
 from colorama import Fore, Style
 from entities import *
 import pickle
@@ -6,6 +7,8 @@ import pickle
 INDENT = 11  # Number of spaces for indentation
 
 # Decorators
+
+
 def input_error(func):
     def inner(*args, **kwargs):
         try:
@@ -28,7 +31,8 @@ def safe_input(prompt, allow_empty=False):
     user_input = input(f"{indented_prompt} ('/' to return to menu): ").strip()
 
     if user_input == '/':
-        print(" " * INDENT + f"{Style.DIM}{Fore.WHITE}Operation cancelled.{Style.RESET_ALL}")
+        print(" " * INDENT +
+              f"{Style.DIM}{Fore.WHITE}Operation cancelled.{Style.RESET_ALL}")
         return None
 
     if not user_input and not allow_empty:
@@ -112,7 +116,8 @@ def change_contact(book: AddressBook) -> str:
     if not record:
         raise KeyError()
 
-    birthday = safe_input("Change birthday? (enter as DD.MM.YYYY or skip)", allow_empty=True)
+    birthday = safe_input(
+        "Change birthday? (enter as DD.MM.YYYY or skip)", allow_empty=True)
     if birthday is None:
         return ""
     if birthday:
@@ -140,7 +145,8 @@ def change_contact(book: AddressBook) -> str:
             return " " * INDENT + str(e)
 
     while True:
-        phone = safe_input("Change phone number? (enter or skip)", allow_empty=True)
+        phone = safe_input(
+            "Change phone number? (enter or skip)", allow_empty=True)
         if phone is None:
             return ""
         if not phone:
@@ -168,9 +174,15 @@ def show_all(book: AddressBook):
 
 @input_error
 def birthdays(book: AddressBook):
-    for contact in book.get_upcoming_birthdays():
-        print(
-            f"Don't forget to wish {contact['name']} a happy birthday on {contact['congratulation_date']}")
+    days = safe_input('Enter number of check to days: (7):', allow_empty=True)
+    if days.isdigit():
+        for contact in book.get_upcoming_birthdays(int(days)):
+            print(
+                f"Don't forget to wish {contact['name']} a happy birthday on {contact['congratulation_date']}")
+    else:
+        for contact in book.get_upcoming_birthdays():
+            print(
+                f"Don't forget to wish {contact['name']} a happy birthday on {contact['congratulation_date']}")
 
 
 def save_addressbook_data(book: AddressBook, filename="addressbook.pkl"):
@@ -218,7 +230,8 @@ def add_note(args, notebook: NoteBook) -> str:
 @input_error
 @input_error
 def search_contact(book: AddressBook) -> str:
-    query = safe_input("Enter a name or number to search for", allow_empty=False)
+    query = safe_input(
+        "Enter a name or number to search for", allow_empty=False)
     if query is None:
         return ""
 
