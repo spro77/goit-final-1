@@ -28,6 +28,13 @@ A command-line contact and note management application.
     pip install -r requirements.txt
    
 ## Running the Application
+
+### Seeding Demo Data (Optional)
+To populate the application with demo contacts:
+   ```bash
+    python seed.py
+```
+
 Start the application:
 ```bash
   python main.py
