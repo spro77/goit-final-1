@@ -47,14 +47,14 @@ def parse_input(user_input):
 
 @input_error
 def add_contact(book: Organizer) -> str:
-    name = safe_input("Enter contact name (mandatory)", allow_empty=False)
+    name = safe_input("Enter contact name", allow_empty=False)
     if name is None:
         return ""
 
     record = Record(name)
 
     while True:
-        phone = safe_input("Enter phone (10 digits)", allow_empty=True)
+        phone = safe_input("Optional phone (10 digits)", allow_empty=True)
         if phone is None:
             return ""
         if not phone:
@@ -65,7 +65,7 @@ def add_contact(book: Organizer) -> str:
         except ValueError as e:
             print(f"{' ' * INDENT}{e}")
 
-    birthday = safe_input("Enter birthday (DD.MM.YYYY)", allow_empty=True)
+    birthday = safe_input("Optional birthday (DD.MM.YYYY)", allow_empty=True)
     if birthday is None:
         return ""
     if birthday:
@@ -74,7 +74,7 @@ def add_contact(book: Organizer) -> str:
         except ValueError as e:
             return " " * INDENT + str(e)
 
-    email = safe_input("Enter email", allow_empty=True)
+    email = safe_input("Optional email", allow_empty=True)
     if email is None:
         return ""
     if email:
@@ -83,7 +83,7 @@ def add_contact(book: Organizer) -> str:
         except ValueError as e:
             return " " * INDENT + str(e)
 
-    address = safe_input("Enter address", allow_empty=True)
+    address = safe_input("Optional address", allow_empty=True)
     if address is None:
         return ""
     if address:
