@@ -302,7 +302,15 @@ class Organizer(UserDict):
     def delete_note(self, title: str):
         if title in self.notes:
             return self.notes.pop(title)
-        
+    
+    def find_notes_by_text(self, text: str):
+        found_notes=[]
+        for _, note in self.notes.items():
+            if text.lower() in note.value.lower():
+                found_notes.append(note)
+        if found_notes:
+            return found_notes
+       
     def save(self, filename="organizer.pkl"):
         with open(filename, "wb") as f:
             pickle.dump(self, f)

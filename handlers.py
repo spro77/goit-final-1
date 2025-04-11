@@ -262,8 +262,16 @@ def list_notes(book: Organizer):
     return
 
 
-def search_notes(args, book: Organizer) -> str:
-    pass
+def search_notes( book: Organizer) -> str:
+    text = safe_input("Enter text you want to find: ")
+    if text is None:
+        return 'Searching was cancelled'
+    notes = book.find_notes_by_text(text)
+    if notes:
+         return "\n".join(str(note) for note in notes)
+    else:
+        return f"{' ' * INDENT}Notes were not found"
+    
 
 
 def edit_note(book: Organizer) -> Optional[str]:
