@@ -373,5 +373,19 @@ def edit_note(book: Organizer) -> Optional[str]:
     return "Note updated."
 
 
-def delete_note(args, book: Organizer) -> str:
-    pass
+def delete_note( book: Organizer) -> str:
+    try:
+        title = safe_input("Enter a title of note to delete: ", allow_empty=False)
+        if title is None:
+            return 'Delete was cancelled'
+        note = book.find_note(title)
+        if note:
+            book.delete_note(title)
+            return f"{" " * INDENT}Note was deleted"
+        else:
+            return f"{" " * INDENT}Note was not found"
+    except Exception as e:
+        return f"Error: {str(e)}"
+
+
+

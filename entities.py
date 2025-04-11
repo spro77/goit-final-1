@@ -298,7 +298,11 @@ class Organizer(UserDict):
 
         print("\n".join(result))
         return self
-
+    
+    def delete_note(self, title: str):
+        if title in self.notes:
+            return self.notes.pop(title)
+        
     def save(self, filename="organizer.pkl"):
         with open(filename, "wb") as f:
             pickle.dump(self, f)
