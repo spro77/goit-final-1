@@ -3,10 +3,7 @@ from colorama import Fore, Style
 from entities import *
 import pickle
 
-# Global constants
-INDENT = 11  # Number of spaces for indentation
-
-# Decorators
+INDENT = 11
 
 
 def input_error(func):
@@ -27,12 +24,11 @@ def input_error(func):
 
 def safe_input(prompt, allow_empty=False):
     """Custom input function that allows returning to the main menu"""
-    indented_prompt = " " * INDENT + prompt
-    user_input = input(f"{indented_prompt} ('/' to return to menu): ").strip()
+    indented_prompt = " " * INDENT + Fore.BLUE + prompt + Style.RESET_ALL
+    user_input = input(f"{indented_prompt} ('/' to main menu): ").strip()
 
     if user_input == '/':
-        print(" " * INDENT +
-              f"{Style.DIM}{Fore.WHITE}Operation cancelled.{Style.RESET_ALL}")
+        print(" " * INDENT + f"{Style.DIM}{Fore.WHITE}Operation cancelled.{Style.RESET_ALL}")
         return None
 
     if not user_input and not allow_empty:
@@ -42,7 +38,6 @@ def safe_input(prompt, allow_empty=False):
     return user_input
 
 
-# General Handlers
 @input_error
 def parse_input(user_input):
     cmd, *args = user_input.split()
@@ -51,7 +46,7 @@ def parse_input(user_input):
 
 
 @input_error
-def add_contact(book) -> str:
+def add_contact(book: Organizer) -> str:
     name = safe_input("Enter contact name (mandatory)", allow_empty=False)
     if name is None:
         return ""
@@ -98,7 +93,7 @@ def add_contact(book) -> str:
             return " " * INDENT + str(e)
 
     try:
-        book.add_record(record)
+        book.add_contact(record)
         return " " * INDENT + "Contact added."
     except KeyError:
         # This should be caught by our input_error decorator
@@ -107,17 +102,16 @@ def add_contact(book) -> str:
 
 
 @input_error
-def change_contact(book: AddressBook) -> str:
+def change_contact(book: Organizer) -> str:
     name = safe_input("Enter contact name", allow_empty=False)
     if name is None:
         return ""
 
-    record = book.find(name)
+    record = book.find_contact(name)
     if not record:
         raise KeyError()
 
-    birthday = safe_input(
-        "Change birthday? (enter as DD.MM.YYYY or skip)", allow_empty=True)
+    birthday = safe_input("Change birthday? (enter as DD.MM.YYYY or skip)", allow_empty=True)
     if birthday is None:
         return ""
     if birthday:
@@ -145,8 +139,7 @@ def change_contact(book: AddressBook) -> str:
             return " " * INDENT + str(e)
 
     while True:
-        phone = safe_input(
-            "Change phone number? (enter or skip)", allow_empty=True)
+        phone = safe_input("Change phone number? (enter or skip)", allow_empty=True)
         if phone is None:
             return ""
         if not phone:
@@ -161,63 +154,48 @@ def change_contact(book: AddressBook) -> str:
 
 
 @input_error
-def show_all(book: AddressBook):
-    if not book.data:
-        return ' ' * INDENT + 'No contacts saved.'
+def show_all(book: Organizer):
+    if not book.contacts:
+        return ' ' * INDENT + f'{Fore.LIGHTBLACK_EX}No contacts saved.{Style.RESET_ALL}'
 
     result = []
-    for _, record in book.data.items():
+    for _, record in book.contacts.items():
         result.append(' ' * INDENT + str(record))
 
     return "\n".join(result)
 
 
 @input_error
-def birthdays(book: AddressBook):
+def birthdays(book: Organizer):
     days = safe_input('Enter number of check to days: (7):', allow_empty=True)
+    if days is None:
+        return ""
+
     if days.isdigit():
         for contact in book.get_upcoming_birthdays(int(days)):
             print(
-                f"Don't forget to wish {contact['name']} a happy birthday on {contact['congratulation_date']}")
+                f"{' ' * INDENT}{Fore.LIGHTBLACK_EX}Don't forget to wish {Style.RESET_ALL}{Style.BRIGHT}{contact['name']}{Style.RESET_ALL}{Fore.LIGHTBLACK_EX} a happy birthday on {Style.RESET_ALL}{Style.BRIGHT}{contact['congratulation_date']}")
     else:
         for contact in book.get_upcoming_birthdays():
             print(
-                f"Don't forget to wish {contact['name']} a happy birthday on {contact['congratulation_date']}")
+                f"{' ' * INDENT}{Fore.LIGHTBLACK_EX}Don't forget to wish {Style.RESET_ALL}{Style.BRIGHT}{contact['name']}{Style.RESET_ALL}{Fore.LIGHTBLACK_EX} a happy birthday on {Style.RESET_ALL}{Style.BRIGHT}{contact['congratulation_date']}")
 
 
-def save_addressbook_data(book: AddressBook, filename="addressbook.pkl"):
-    with open(filename, "wb") as f:
-        pickle.dump(book, f)
+def save_data(book: Organizer, filename="organizer.pkl"):
+    book.save(filename)
 
 
-def load_addressbook_data(filename="addressbook.pkl"):
-    try:
-        with open(filename, "rb") as f:
-            return pickle.load(f)
-    except FileNotFoundError:
-        return AddressBook()
+def load_data(filename="organizer.pkl"):
+    return Organizer.load(filename)
 
-
-# NoteBook Handlers
-def save_notebook_data(notebook: NoteBook, filename="notebook.pkl"):
-    with open(filename, "wb") as f:
-        pickle.dump(notebook, f)
-
-
-def load_notebook_data(filename="notebook.pkl"):
-    try:
-        with open(filename, "rb") as f:
-            return pickle.load(f)
-    except FileNotFoundError:
-        return NoteBook()
 
 @input_error
-def add_note(notebook: NoteBook) -> str:
+def add_note(book: Organizer) -> str:
     title = safe_input('Input value for the title of the note: ')
     if title is None:
         return "Note creation cancelled."
 
-    note = notebook.find(title)
+    note = book.find_note(title)
     if note is not None:
         return "Note is already in notebook"
 
@@ -226,11 +204,11 @@ def add_note(notebook: NoteBook) -> str:
         return "Note creation cancelled."
 
     note = Note(title, text)
-    notebook.add_note(note)
+    book.add_note(note)
 
     is_need_add_tag = safe_input("Do you want to add a tag to the note? (y/n): ")
     if is_need_add_tag is None:
-        return "Note created."
+        return f"{' ' * INDENT}{Fore.LIGHTBLACK_EX}Note added.{Style.RESET_ALL}"
 
     if is_need_add_tag.strip().lower() == 'y':
         while True:
@@ -244,19 +222,19 @@ def add_note(notebook: NoteBook) -> str:
             except ValueError as e:
                 print(e)
 
-    return "Note added."
+    return f"{' ' * INDENT}{Fore.LIGHTBLACK_EX}Note added.{Style.RESET_ALL}"
+
 
 @input_error
-def search_contact(book: AddressBook) -> str:
-    query = safe_input(
-        "Enter a name or number to search for", allow_empty=False)
+def search_contact(book: Organizer) -> str:
+    query = safe_input("Enter a name or number to search for", allow_empty=False)
     if query is None:
         return ""
 
     query = query.lower()
     results = []
 
-    for name, record in book.data.items():
+    for name, record in book.contacts.items():
         name_match = query in name.lower()
         phone_match = record.phone and query in record.phone.value.lower()
 
@@ -267,26 +245,30 @@ def search_contact(book: AddressBook) -> str:
 
 
 @input_error
-def delete_contact(book: AddressBook) -> str:
-    name = input("Enter contact name: ").lower()
-    record = book.find(name)
+def delete_contact(book: Organizer) -> str:
+    name = safe_input("Enter contact name", allow_empty=False)
+    if name is None:
+        return ""
+
+    record = book.find_contact(name)
     if record:
-        book.delete(name)
-        return "Contact was deleted"
+        book.delete_contact(name)
+        return f"{' ' * INDENT}Contact was deleted"
     raise KeyError()
 
 
-# placeholders
-def list_notes(notebook: NoteBook):
-    notebook.show_notes()
+def list_notes(book: Organizer):
+    book.show_notes()
     return
 
-def search_notes(args, notebook: NoteBook) -> str:
+
+def search_notes(args, book: Organizer) -> str:
     pass
 
-def edit_note(notebook: NoteBook) -> Optional[str]:
-    notes = notebook.data
-    notebook.show_notes()
+
+def edit_note(book: Organizer) -> Optional[str]:
+    notes = book.notes
+    book.show_notes()
     if not notes:
         return "No notes to edit."
 
@@ -299,7 +281,7 @@ def edit_note(notebook: NoteBook) -> Optional[str]:
         note = list(notes.values())[selected_index]
     except (ValueError, IndexError):
         print("Invalid selection.")
-        return
+        return None
 
     print(f"\nEditing note: {note.title.value}")
 
@@ -391,5 +373,5 @@ def edit_note(notebook: NoteBook) -> Optional[str]:
     return "Note updated."
 
 
-def delete_note(args, notebook: NoteBook) -> str:
+def delete_note(args, book: Organizer) -> str:
     pass

@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 import handlers
 
+
 def main():
-    current_book = handlers.load_addressbook_data()
-    current_notebook = handlers.load_notebook_data()
+    organizer = handlers.load_data()
 
     def print_menu(_=None):
-        menu_text = "\nContact Manager:"
+        menu_text = "\nMainMenu:"
         for key, (desc, _) in commands.items():
             menu_text += f"\n  {key:>2}. {desc}"
         menu_text += "\n"
@@ -24,29 +24,29 @@ def main():
         "9": ("search note", handlers.search_notes),
         "10": ("edit note", handlers.edit_note),
         "11": ("delete note", handlers.delete_note),
-        "0": ("exit", None),
+        "0": ("save & exit", None),
         "?": ("help", print_menu),
     }
 
+    print('Organizer v1.0')
     print(print_menu())
 
     while True:
-        choice = input("Main Menu: ").strip()
+        choice = input("Organizer: ").strip()
         if choice not in commands:
             print("Invalid selection. Try again.")
             continue
 
         desc, handler = commands[choice]
         if choice == "0":
-            handlers.save_addressbook_data(current_book)
+            handlers.save_data(organizer)
             print("Data saved. Goodbye!")
             break
 
-        target = current_book if ('contact' in desc or 'birthday' in desc) else current_notebook
-
-        result = handler(target)
+        result = handler(organizer)
         if result:
             print(result)
+
 
 if __name__ == "__main__":
     main()

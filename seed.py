@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
-from entities import Record, AddressBook
+from entities import Record, Note, Organizer
 import pickle
 import os
 
+
 def seed_demo_data():
     """
-    Create and populate a new AddressBook with demo contacts
+    Create and populate a new Organizer with demo contacts and notes
     """
-    book = AddressBook()
+    organizer = Organizer()
 
-    # Mock data
+    # Mock contact data
     contacts = [
         {"name": "John Smith", "phone": "1234567890", "birthday": "15.06.1985",
          "email": "john@example.com", "address": "123 Main St"},
@@ -33,25 +34,41 @@ def seed_demo_data():
          "email": "lisa@example.com", "address": "707 Chestnut Pl"}
     ]
 
+    # Add contacts
     for contact in contacts:
         record = Record(contact["name"])
         record.add_phone(contact["phone"])
         record.add_birthday(contact["birthday"])
         record.email = contact["email"]
         record.address = contact["address"]
-        book.add_record(record)
+        organizer.add_contact(record)
 
-    with open("addressbook.pkl", "wb") as f:
-        pickle.dump(book, f)
+    # Mock note data
+    notes = [
+        {"title": "Shopping List", "value": "Milk, Bread, Eggs, Cheese", "tags": ["shopping", "groceries"]},
+        {"title": "Meeting Notes", "value": "Discuss Q3 planning with team", "tags": ["work", "meetings"]},
+        {"title": "Birthday Ideas", "value": "Gift ideas for Sarah: cookbook, scarf, jewelry",
+         "tags": ["birthdays", "gifts"]},
+        {"title": "Books to Read", "value": "1984, Dune, The Hobbit", "tags": ["books", "reading"]}
+    ]
 
-    print(f"Demo contacts added to addressbook.pkl")
-    return book
+    # Add notes
+    for note_data in notes:
+        note = Note(note_data["title"], note_data["value"], note_data["tags"])
+        organizer.add_note(note)
+
+    # Save the organizer
+    organizer.save("organizer.pkl")
+
+    print(f"Demo contacts and notes added to organizer.pkl")
+    return organizer
+
 
 if __name__ == "__main__":
-    if os.path.exists("addressbook.pkl"):
-        confirm = input("addressbook.pkl already exists. Overwrite with demo data? (y/n): ")
+    if os.path.exists("organizer.pkl"):
+        confirm = input("organizer.pkl already exists. Overwrite? (y/n): ")
         if confirm.lower() != 'y':
-            print("Operation cancelled.")
+            print("Cancelled.")
             exit()
 
     seed_demo_data()

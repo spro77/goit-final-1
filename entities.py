@@ -1,8 +1,13 @@
 from validators import *
-from collections import UserDict
 from datetime import datetime as dt, timedelta as td
+from collections import UserDict
 from colorama import Fore, Style, init
+import pickle
+from typing import Optional
+
 init(autoreset=True)
+
+INDENT = 11
 
 
 class Field:
@@ -168,25 +173,69 @@ class Record:
         return ', '.join(info)
 
 
-class AddressBook(UserDict):
-    def add_record(self, record: Record):
+class Note(Field):
+    def __init__(self, title: str, value: str, tags: list = None):
+        self._title = Name(title)
+        self._tags = tags if tags is not None else []
+        super().__init__(length_validator(value))
+
+    @property
+    def tags(self):
+        return self._tags
+
+    @tags.setter
+    def tags(self, value: str):
+        if value not in self.tags:
+            tag = length_validator(value)
+            self.tags.append(tag)
+        else:
+            raise ValueError("The tag is already in the tag list of the note")
+
+    @property
+    def title(self):
+        return self._title
+
+    @title.setter
+    def title(self, value: str):
+        self._title = Name(value)
+
+    def __str__(self):
+        info = [
+            f"{Fore.LIGHTBLACK_EX}Title:{Style.RESET_ALL} {Style.BRIGHT}{self.title.value}{Style.RESET_ALL}",
+            f"{Fore.LIGHTBLACK_EX}Content:{Style.RESET_ALL} {Style.BRIGHT}{self.value}{Style.RESET_ALL}"
+        ]
+
+        if self.tags:
+            tags_str = ', '.join(self.tags)
+            info.append(f"{Fore.LIGHTBLACK_EX}Tags:{Style.RESET_ALL} {Style.BRIGHT}{tags_str}{Style.RESET_ALL}")
+
+        return ', '.join(info)
+
+
+class Organizer(UserDict):
+    def __init__(self):
+        super().__init__()
+        self.contacts = {}
+        self.notes = {}
+
+    # Contact methods
+    def add_contact(self, record: Record):
         if isinstance(record, Record):
-            if record.name.value not in self.data:
-                self.data[record.name.value] = record
+            if record.name.value not in self.contacts:
+                self.contacts[record.name.value] = record
             else:
-                raise KeyError(
-                    f"The {record.name.value} is already in contact list")
+                raise KeyError(f"The {record.name.value} is already in contact list")
         else:
             raise ValueError(f"The {record} is not instance of Record")
 
-    def find(self, name: str) -> Optional[Record]:
-        for contact_name, record in self.data.items():
+    def find_contact(self, name: str) -> Optional[Record]:
+        for contact_name, record in self.contacts.items():
             if contact_name.lower() == name.lower():
                 return record
 
-    def delete(self, name: str) -> Optional[Record]:
-        if name in self.data:
-            return self.data.pop(name)
+    def delete_contact(self, name: str) -> Optional[Record]:
+        if name in self.contacts:
+            return self.contacts.pop(name)
         else:
             raise KeyError(f'{name} is absent in contact list')
 
@@ -194,7 +243,7 @@ class AddressBook(UserDict):
         try:
             birthday_people = []
             current_day = dt.today().date()
-            for user, record in self.data.items():
+            for user, record in self.contacts.items():
                 if record.birthday:
                     user_birthday = record.birthday.value
                     next_congratulations = user_birthday.replace(
@@ -224,71 +273,46 @@ class AddressBook(UserDict):
             print('Function argument must be user list.')
             return []
 
-    def __getstate__(self):
-        return self.__dict__
-
-    def __setstate__(self, state):
-        self.__dict__.update(state)
-
-
-# Notebook
-
-
-class Note(Field):
-    def __init__(self, title: str, value: str, tags: list = None):
-        self._title = Name(title)
-        self._tags = tags if tags is not None else []
-        super().__init__(length_validator(value))
-
-    @property
-    def tags(self):
-        return self._tags
-
-    @tags.setter
-    def tags(self, value: str):
-        if value not in self.tags:
-            tag = length_validator(value)
-            self.tags.append(tag)
-        else:
-            raise ValueError("The tag is already in the tag list of the note")
-    
-    @property
-    def title(self):
-        return self._title
-
-    @title.setter
-    def title(self, value: str):
-        self._title = Name(value) 
-
-class NoteBook(UserDict):
+    # Note methods
     def add_note(self, note: Note):
         if isinstance(note, Note):
-            if note.title.value not in self.data:
-                self.data[note.title.value] = note
+            if note.title.value not in self.notes:
+                self.notes[note.title.value] = note
             else:
-                raise KeyError(
-                    f"The {note.title.value} is already in list of notes")
+                raise KeyError(f"The {note.title.value} is already in list of notes")
         else:
             raise ValueError(f"The {note} is not instance of Note")
 
-    def find(self, title: str) -> Optional[Record]:
-        if title in self.data:
-            return self.data.get(title)
+    def find_note(self, title: str) -> Optional[Note]:
+        if title in self.notes:
+            return self.notes.get(title)
+
+    def show_notes(self):
+        if not self.notes:
+            print(f"{' ' * INDENT}{Fore.LIGHTBLACK_EX}No notes available.{Style.RESET_ALL}")
+            return self
+
+        result = []
+        for note in self.notes.values():
+            result.append(' ' * INDENT + str(note))
+
+        print("\n".join(result))
+        return self
+
+    def save(self, filename="organizer.pkl"):
+        with open(filename, "wb") as f:
+            pickle.dump(self, f)
+
+    @classmethod
+    def load(cls, filename="organizer.pkl"):
+        try:
+            with open(filename, "rb") as f:
+                return pickle.load(f)
+        except FileNotFoundError:
+            return cls()
 
     def __getstate__(self):
         return self.__dict__
 
     def __setstate__(self, state):
         self.__dict__.update(state)
-
-    def show_notes(self):
-        print(self.data)
-        notes = self.data
-        if not notes:
-            print("No notes available.")
-            return self
-        
-        print("Available notes:")
-        for i, note in enumerate(notes.values()):
-            tags = ', '.join(note.tags) if note.tags else ">>> NO TAGS HERE <<<"
-            print(f"{i}: Title: {note.title.value}, Value: {note.value}, Tags: {tags}")
