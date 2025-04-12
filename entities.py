@@ -311,6 +311,14 @@ class Organizer(UserDict):
                 found_notes.append(note)
         if found_notes:
             return found_notes
+        
+    def find_notes_by_tags(self, text: str):
+        found_notes=[]
+        for _, note in self.notes.items():
+            if any(text.lower() in tag.lower() for tag in note.tags):
+                found_notes.append(note)
+        if found_notes:
+            return found_notes    
        
     def save(self, filename="organizer.pkl"):
         with open(filename, "wb") as f:
