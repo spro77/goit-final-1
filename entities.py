@@ -306,7 +306,8 @@ class Organizer(UserDict):
     def find_notes_by_text(self, text: str):
         found_notes=[]
         for _, note in self.notes.items():
-            if text.lower() in note.value.lower():
+            search_phrase = f"{note.title.value} {note.value} {' '.join(note.tags)}".lower()
+            if text.lower() in search_phrase:
                 found_notes.append(note)
         if found_notes:
             return found_notes
