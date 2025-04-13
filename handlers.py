@@ -94,7 +94,7 @@ def add_contact(book: Organizer) -> str:
 
     try:
         book.add_contact(record)
-        return " " * INDENT + "Contact added."
+        return f"{' ' * INDENT}{Fore.LIGHTBLACK_EX}Contact added.{Style.RESET_ALL}"
     except KeyError:
         # This should be caught by our input_error decorator
         # which will display "Contact exists in your contact list"
@@ -150,7 +150,7 @@ def change_contact(book: Organizer) -> str:
         except ValueError as e:
             print(f"{' ' * INDENT}{e}")
 
-    return " " * INDENT + "Contact changed."
+    return f"{' ' * INDENT}{Fore.LIGHTBLACK_EX}Contact changed.{Style.RESET_ALL}"
 
 
 @input_error
@@ -191,38 +191,39 @@ def load_data(filename="organizer.pkl"):
 
 @input_error
 def add_note(book: Organizer) -> str:
-    title = safe_input('Input value for the title of the note: ')
-    if title is None:
-        return "Note creation cancelled."
+    while True:
+        title = safe_input('Enter the title: ', allow_empty=False)
+        if title is None:
+            return "Note creation cancelled."
+        if not title.strip():
+            print(f"{' ' * INDENT}{Fore.LIGHTBLACK_EX}Title can't be empty{Style.RESET_ALL}")
+            continue
+        break
 
     note = book.find_note(title)
     if note is not None:
         return "Note is already in notebook"
 
-    text = safe_input("Write the note description: ")
+    text = safe_input("Write the note: ")
     if text is None:
         return "Note creation cancelled."
 
     note = Note(title, text)
     book.add_note(note)
 
-    is_need_add_tag = safe_input("Do you want to add a tag to the note? (y/n): ")
-    if is_need_add_tag is None:
-        return f"{' ' * INDENT}{Fore.LIGHTBLACK_EX}Note added.{Style.RESET_ALL}"
+    tags_input = safe_input("Optional tags, comma separated: ", allow_empty=True)
+    if tags_input is None:
+        return f"{' ' * INDENT}{Fore.LIGHTBLACK_EX}Note created.{Style.RESET_ALL}"
 
-    if is_need_add_tag.strip().lower() == 'y':
-        while True:
-            new_tag = safe_input("Enter a new tag (or press Enter to stop): ", allow_empty=True)
-            if new_tag is None:
-                return "Note created."
-            if not new_tag:
-                break
+    if tags_input:
+        for tag in [t.strip() for t in tags_input.split(',') if t.strip()]:
             try:
-                note.tags.append(new_tag)
+                note.tags.append(tag)
             except ValueError as e:
                 print(e)
 
-    return f"{' ' * INDENT}{Fore.LIGHTBLACK_EX}Note added.{Style.RESET_ALL}"
+    print(f"{' ' * INDENT}{str(note)}")
+    return f"{' ' * INDENT}{Fore.LIGHTBLACK_EX}Note created.{Style.RESET_ALL}"
 
 
 @input_error
@@ -252,8 +253,12 @@ def delete_contact(book: Organizer) -> str:
 
     record = book.find_contact(name)
     if record:
+        confirmation = safe_input(f"Do you want to delete Contact '{name}'? (Y/N): ", allow_empty=False)
+        if confirmation is None or confirmation.lower() != 'y':
+            return f"{' ' * INDENT}{Fore.LIGHTBLACK_EX}Deletion cancelled.{Style.RESET_ALL}"
+
         book.delete_contact(name)
-        return f"{' ' * INDENT}Contact was deleted"
+        return f"{' ' * INDENT}{Fore.LIGHTBLACK_EX}Contact was deleted{Style.RESET_ALL}"
     raise KeyError()
 
 
@@ -262,42 +267,53 @@ def list_notes(book: Organizer):
     return
 
 
-def search_notes( book: Organizer) -> str:
+def search_notes(book: Organizer) -> str:
     choice = safe_input("Do you want to search tags (1) or text (2). Enter 1 or 2: ", allow_empty=False)
-    if choice =="/":
-        return "Search was canceled"
+    if choice is None or choice == "/":
+        return f"{' ' * INDENT}{Fore.LIGHTBLACK_EX}Search was canceled{Style.RESET_ALL}"
+
     if choice == "1":
-        tags = safe_input("Enter tags to search for: ", allow_empty=False)
-        if tags is None:
-            return "Search was canceled"
-        notes = book.find_notes_by_tags(tags)
-        if notes:
-            return "\n".join(str(note) for note in notes)
+        tags_input = safe_input("Enter tags to search for (comma separated): ", allow_empty=False)
+        if tags_input is None:
+            return f"{' ' * INDENT}{Fore.LIGHTBLACK_EX}Search was canceled{Style.RESET_ALL}"
+
+        tags = [tag.strip() for tag in tags_input.split(',') if tag.strip()]
+
+        found_notes_set = set()
+
+        for tag in tags:
+            notes = book.find_notes_by_tags(tag)
+            if notes:
+                found_notes_set.update(notes)
+
+        if found_notes_set:
+            return "\n".join(sorted(found_notes_set))
         else:
-            return f"{' ' * INDENT}Notes were not found"
-    elif choice =="2":
+            return f"{' ' * INDENT}{Fore.LIGHTBLACK_EX}Notes were not found{Style.RESET_ALL}"
+
+    elif choice == "2":
         text = safe_input("Enter text to search for: ", allow_empty=False)
         if text is None:
-            return 'Searching was cancelled'
+            return f"{' ' * INDENT}{Fore.LIGHTBLACK_EX}Search was canceled{Style.RESET_ALL}"
+
         notes = book.find_notes_by_text(text)
         if notes:
             return "\n".join(str(note) for note in notes)
         else:
-            return f"{' ' * INDENT}Notes were not found"
+            return f"{' ' * INDENT}{Fore.LIGHTBLACK_EX}Notes were not found{Style.RESET_ALL}"
     else:
-        return f"{' ' * INDENT}Invalid choice."
+        return f"{' ' * INDENT}{Fore.LIGHTBLACK_EX}Invalid choice.{Style.RESET_ALL}"
 
 
 def edit_note(book: Organizer) -> Optional[str]:
     notes = book.notes
     book.show_notes()
     if not notes:
-        return "No notes to edit."
+        return f"{' ' * INDENT}{Fore.LIGHTBLACK_EX}No notes to edit.{Style.RESET_ALL}"
 
     selected_index_input = safe_input("Enter the number of the note you want to edit: ")
     if selected_index_input is None:
-        return "Edit cancelled."
-
+        return f"{' ' * INDENT}{Fore.LIGHTBLACK_EX}Edit cancelled.{Style.RESET_ALL}"
     try:
         selected_index = int(selected_index_input)
         note = list(notes.values())[selected_index]
@@ -307,105 +323,129 @@ def edit_note(book: Organizer) -> Optional[str]:
 
     print(f"\nEditing note: {note.title.value}")
 
-    if safe_input("Do you want to change the title? (y/n): ") == 'y':
-        new_title = safe_input("Set new value for title: ")
-        if new_title is None:
-            return "Edit cancelled."
-        note.title = length_validator(new_title)
+    changes_made = False
 
-    if safe_input("Do you want to change the note description? (y/n): ") == 'y':
-        new_description = safe_input("Set new value for note: ")
-        if new_description is None:
-            return "Edit cancelled."
+    new_title = safe_input("Update Title or skip: ", allow_empty=True)
+    if new_title is None:
+        return f"{' ' * INDENT}{Fore.LIGHTBLACK_EX}Edit cancelled.{Style.RESET_ALL}"
+    if new_title:
+        note.title = length_validator(new_title)
+        changes_made = True
+
+    new_description = safe_input("Update Note or skip: ", allow_empty=True)
+    if new_description is None:
+        return f"{' ' * INDENT}{Fore.LIGHTBLACK_EX}Edit cancelled.{Style.RESET_ALL}"
+    if new_description:
         note.value = length_validator(new_description)
+        changes_made = True
 
     if safe_input("Do you want to update tags? (y/n): ") == 'y':
         while True:
-            print("\nWhat do you want to do with tags?")
-            print("1: Add tags")
-            print("2: Change existing tags")
-            print("3: Delete tags")
-            action = safe_input("Select an option (1/2/3): ")
-            if action is None:
-                return "Edit cancelled."
+            print(f"\n{' ' * INDENT}Tag Management:")
+            print(f"{' ' * (INDENT * 2)}1: Add tags")
+            print(f"{' ' * (INDENT * 2)}2: Change existing tags")
+            print(f"{' ' * (INDENT * 2)}3: Delete tags")
+
+            def level3_input(prompt, allow_empty=False):
+                indented_prompt = " " * (INDENT * 2) + Fore.BLUE + prompt + Style.RESET_ALL
+                user_input = input(f"{indented_prompt} ('/' to exit tag editing): ").strip()
+
+                if user_input == '/':
+                    return None
+
+                if not user_input and not allow_empty:
+                    print(" " * (INDENT * 2) + "This field cannot be empty. Please try again or type '/' to exit.")
+                    return level3_input(prompt, allow_empty)
+
+                return user_input
+
+            action = level3_input("Select an option (1/2/3/4): ")
+            if action is None or action == '4':
+                print(f"\n{' ' * INDENT}Current note:")
+                print(f"{' ' * INDENT}{str(note)}")
+                break
 
             if action == '1':
                 while True:
-                    new_tag = safe_input("Enter a new tag (or press Enter to stop): ", allow_empty=True)
+                    new_tag = level3_input("Enter a new tag (or press Enter to stop): ", allow_empty=True)
                     if new_tag is None:
-                        return "Edit cancelled."
+                        break
                     if not new_tag:
                         break
                     try:
                         note.tags.append(new_tag)
+                        changes_made = True
+                        print(f"{' ' * (INDENT * 2)}{Fore.LIGHTBLACK_EX}Tag added.{Style.RESET_ALL}")
                     except ValueError as e:
-                        print(e)
-                break
+                        print(f"{' ' * (INDENT * 2)}{e}")
 
             elif action == '2':
                 if not note.tags:
-                    print("No tags available to change.")
-                    break
+                    print(f"{' ' * (INDENT * 2)}{Fore.LIGHTBLACK_EX}No tags available to change.{Style.RESET_ALL}")
+                    continue
 
                 for idx, tag in enumerate(note.tags):
-                    print(f"{idx}: {tag}")
+                    print(f"{' ' * (INDENT * 2)}{idx}: {tag}")
 
-                tag_index_input = safe_input("Select the number of the tag to change: ")
+                tag_index_input = level3_input("Select the number of the tag to change: ")
                 if tag_index_input is None:
-                    return "Edit cancelled."
+                    continue
 
                 try:
                     tag_index = int(tag_index_input)
                     if tag_index < 0 or tag_index >= len(note.tags):
-                        print("Invalid tag number.")
+                        print(f"{' ' * (INDENT * 2)}{Fore.LIGHTBLACK_EX}Invalid tag number.{Style.RESET_ALL}")
                         continue
-                    new_tag_value = safe_input("Enter new value for the tag: ")
+                    new_tag_value = level3_input("Enter new value for the tag: ")
                     if new_tag_value is None:
-                        return "Edit cancelled."
+                        continue
                     note.tags[tag_index] = new_tag_value
+                    changes_made = True
+                    print(f"{' ' * (INDENT * 2)}{Fore.LIGHTBLACK_EX}Tag updated.{Style.RESET_ALL}")
                 except (ValueError, IndexError):
-                    print("Invalid selection.")
-                    continue
-                break
+                    print(f"{' ' * (INDENT * 2)}{Fore.LIGHTBLACK_EX}Invalid selection.{Style.RESET_ALL}")
 
             elif action == '3':
                 if not note.tags:
-                    print("No tags available to delete.")
-                    break
+                    print(f"{' ' * (INDENT * 2)}{Fore.LIGHTBLACK_EX}No tags available to delete.{Style.RESET_ALL}")
+                    continue
 
                 for idx, tag in enumerate(note.tags):
-                    print(f"{idx}: {tag}")
+                    print(f"{' ' * (INDENT * 2)}{idx}: {tag}")
 
-                tag_index_input = safe_input("Select the number of the tag to delete: ")
+                tag_index_input = level3_input("Select the number of the tag to delete: ")
                 if tag_index_input is None:
-                    return "Edit cancelled."
+                    continue
 
                 try:
                     tag_index = int(tag_index_input)
                     if tag_index < 0 or tag_index >= len(note.tags):
-                        print("Invalid tag number.")
+                        print(f"{' ' * (INDENT * 2)}{Fore.LIGHTBLACK_EX}Invalid tag number.{Style.RESET_ALL}")
                         continue
                     deleted_tag = note.tags.pop(tag_index)
-                    print(f"Tag '{deleted_tag}' has been deleted.")
+                    changes_made = True
+                    print(
+                        f"{' ' * (INDENT * 2)}{Fore.LIGHTBLACK_EX}Tag '{deleted_tag}' has been deleted.{Style.RESET_ALL}")
                 except (ValueError, IndexError):
-                    print("Invalid selection.")
-                    continue
-                break
+                    print(f"{' ' * (INDENT * 2)}{Fore.LIGHTBLACK_EX}Invalid selection.{Style.RESET_ALL}")
 
-    return "Note updated."
+    if changes_made:
+        return f"{' ' * INDENT}{Fore.LIGHTBLACK_EX}Note updated.{Style.RESET_ALL}"
+    else:
+        return f"{' ' * INDENT}{Fore.LIGHTBLACK_EX}No changes made to note.{Style.RESET_ALL}"
 
 
 def delete_note( book: Organizer) -> str:
     try:
         title = safe_input("Enter a title of note to delete: ", allow_empty=False)
         if title is None:
-            return 'Delete was cancelled'
+            return f"{' ' * INDENT}{Fore.LIGHTBLACK_EX}Delete was cancelled{Style.RESET_ALL}"
         note = book.find_note(title)
         if note:
             book.delete_note(title)
-            return f"{" " * INDENT}Note was deleted"
+            return f"{' ' * INDENT}{Fore.LIGHTBLACK_EX}Note was deleted{Style.RESET_ALL}"
         else:
-            return f"{" " * INDENT}Note was not found"
+            return f"{' ' * INDENT}{Fore.LIGHTBLACK_EX}Note was not found{Style.RESET_ALL}"
     except Exception as e:
         return f"Error: {str(e)}"
 

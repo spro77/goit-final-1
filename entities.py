@@ -209,7 +209,7 @@ class Note(Field):
             tags_str = ', '.join(self.tags)
             info.append(f"{Fore.LIGHTBLACK_EX}Tags:{Style.RESET_ALL} {Style.BRIGHT}{tags_str}{Style.RESET_ALL}")
 
-        return ', '.join(info)
+        return ' | '.join(info)
 
 
 class Organizer(UserDict):
@@ -292,33 +292,41 @@ class Organizer(UserDict):
             print(f"{' ' * INDENT}{Fore.LIGHTBLACK_EX}No notes available.{Style.RESET_ALL}")
             return self
 
-        result = []
-        for note in self.notes.values():
-            result.append(' ' * INDENT + str(note))
+        for i, note in enumerate(self.notes.values()):
+            print(f"{' ' * INDENT}{Fore.LIGHTBLACK_EX}[{i}]{Style.RESET_ALL} {str(note)}")
 
-        print("\n".join(result))
         return self
-    
-    def delete_note(self, title: str):
-        if title in self.notes:
-            return self.notes.pop(title)
-    
+
+    def delete_note(self, title: str) -> str:
+        try:
+            if title not in self.notes:
+                return f"{' ' * INDENT}Note was not found"
+
+            confirmation = input(f"{' ' * INDENT}Do you want to delete Note '{title}'? (Y/N): ")
+            if confirmation.lower() != 'y':
+                return f"{' ' * INDENT}Deletion cancelled."
+
+            self.notes.pop(title)
+            return f"{' ' * INDENT}Note was deleted"
+        except Exception as e:
+            return f"Error: {str(e)}"
+
     def find_notes_by_text(self, text: str):
-        found_notes=[]
+        found_notes = []
         for _, note in self.notes.items():
             search_phrase = f"{note.title.value} {note.value}".lower()
             if text.lower() in search_phrase:
-                found_notes.append(note)
+                found_notes.append(f"{' ' * INDENT}{str(note)}")
         if found_notes:
             return found_notes
-        
+
     def find_notes_by_tags(self, text: str):
-        found_notes=[]
+        found_notes = []
         for _, note in self.notes.items():
             if any(text.lower() in tag.lower() for tag in note.tags):
-                found_notes.append(note)
+                found_notes.append(f"{' ' * INDENT}{str(note)}")
         if found_notes:
-            return found_notes    
+            return found_notes
        
     def save(self, filename="organizer.pkl"):
         with open(filename, "wb") as f:
