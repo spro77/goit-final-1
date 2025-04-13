@@ -262,8 +262,30 @@ def list_notes(book: Organizer):
     return
 
 
-def search_notes(args, book: Organizer) -> str:
-    pass
+def search_notes( book: Organizer) -> str:
+    choice = safe_input("Do you want to search tags (1) or text (2). Enter 1 or 2: ", allow_empty=False)
+    if choice =="/":
+        return "Search was canceled"
+    if choice == "1":
+        tags = safe_input("Enter tags to search for: ", allow_empty=False)
+        if tags is None:
+            return "Search was canceled"
+        notes = book.find_notes_by_tags(tags)
+        if notes:
+            return "\n".join(str(note) for note in notes)
+        else:
+            return f"{' ' * INDENT}Notes were not found"
+    elif choice =="2":
+        text = safe_input("Enter text to search for: ", allow_empty=False)
+        if text is None:
+            return 'Searching was cancelled'
+        notes = book.find_notes_by_text(text)
+        if notes:
+            return "\n".join(str(note) for note in notes)
+        else:
+            return f"{' ' * INDENT}Notes were not found"
+    else:
+        return f"{' ' * INDENT}Invalid choice."
 
 
 def edit_note(book: Organizer) -> Optional[str]:
@@ -373,5 +395,19 @@ def edit_note(book: Organizer) -> Optional[str]:
     return "Note updated."
 
 
-def delete_note(args, book: Organizer) -> str:
-    pass
+def delete_note( book: Organizer) -> str:
+    try:
+        title = safe_input("Enter a title of note to delete: ", allow_empty=False)
+        if title is None:
+            return 'Delete was cancelled'
+        note = book.find_note(title)
+        if note:
+            book.delete_note(title)
+            return f"{" " * INDENT}Note was deleted"
+        else:
+            return f"{" " * INDENT}Note was not found"
+    except Exception as e:
+        return f"Error: {str(e)}"
+
+
+
