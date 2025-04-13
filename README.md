@@ -25,19 +25,19 @@ A command-line contact and note management application.
         source .venv/bin/activate
 4. Install the required packages:
     ```bash
-    pip install -r requirements.txt
+    pip install -e .
    
 ## Running the Application
 
 ### Seeding Demo Data (Optional)
 To populate the application with demo contacts:
    ```bash
-    python seed.py
+    organizer-seed
 ```
 
 Start the application:
 ```bash
-  python main.py
+  organizer
 ```
 
 ## Features

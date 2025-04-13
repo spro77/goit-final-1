@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
-from entities import Record, Note, Organizer
-import pickle
+from organizer.entities import Record, Note, Organizer
 import os
+
+def get_data_path(filename="organizer.pkl"):
+    data_dir = os.path.join(os.path.expanduser("~"), ".organizer")
+    os.makedirs(data_dir, exist_ok=True)
+    return os.path.join(data_dir, filename)
 
 
 def seed_demo_data():
@@ -58,15 +62,16 @@ def seed_demo_data():
         organizer.add_note(note)
 
     # Save the organizer
-    organizer.save("organizer.pkl")
-
-    print(f"Demo contacts and notes added to organizer.pkl")
+    data_path = get_data_path()
+    organizer.save(data_path)
+    print(f"Demo contacts and notes added to {data_path}")
     return organizer
 
 
 if __name__ == "__main__":
-    if os.path.exists("organizer.pkl"):
-        confirm = input("organizer.pkl already exists. Overwrite? (y/n): ")
+    data_path = get_data_path()
+    if os.path.exists(data_path):
+        confirm = input(f"{data_path} already exists. Overwrite? (y/n): ")
         if confirm.lower() != 'y':
             print("Cancelled.")
             exit()

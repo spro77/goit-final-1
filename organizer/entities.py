@@ -1,4 +1,4 @@
-from validators import *
+from organizer.validators import *
 from datetime import datetime as dt, timedelta as td
 from collections import UserDict
 from colorama import Fore, Style, init

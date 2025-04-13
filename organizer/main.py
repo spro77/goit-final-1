@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import handlers
+from organizer import handlers
 
 
 def main():

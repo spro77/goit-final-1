@@ -1,6 +1,8 @@
+import os
 from curses.ascii import isdigit
 from colorama import Fore, Style
-from entities import *
+from organizer.entities import Organizer, Record, Note
+from organizer.validators import *
 import pickle
 
 INDENT = 11
@@ -181,12 +183,20 @@ def birthdays(book: Organizer):
                 f"{' ' * INDENT}{Fore.LIGHTBLACK_EX}Don't forget to wish {Style.RESET_ALL}{Style.BRIGHT}{contact['name']}{Style.RESET_ALL}{Fore.LIGHTBLACK_EX} a happy birthday on {Style.RESET_ALL}{Style.BRIGHT}{contact['congratulation_date']}")
 
 
+def get_data_path(filename="organizer.pkl"):
+    data_dir = os.path.join(os.path.expanduser("~"), ".organizer")
+    os.makedirs(data_dir, exist_ok=True)
+    return os.path.join(data_dir, filename)
+
+
 def save_data(book: Organizer, filename="organizer.pkl"):
-    book.save(filename)
+    full_path = get_data_path(filename)
+    book.save(full_path)
 
 
 def load_data(filename="organizer.pkl"):
-    return Organizer.load(filename)
+    full_path = get_data_path(filename)
+    return Organizer.load(full_path)
 
 
 @input_error
@@ -435,7 +445,7 @@ def edit_note(book: Organizer) -> Optional[str]:
         return f"{' ' * INDENT}{Fore.LIGHTBLACK_EX}No changes made to note.{Style.RESET_ALL}"
 
 
-def delete_note( book: Organizer) -> str:
+def delete_note(book: Organizer) -> str:
     try:
         title = safe_input("Enter a title of note to delete: ", allow_empty=False)
         if title is None:
@@ -448,6 +458,3 @@ def delete_note( book: Organizer) -> str:
             return f"{' ' * INDENT}{Fore.LIGHTBLACK_EX}Note was not found{Style.RESET_ALL}"
     except Exception as e:
         return f"Error: {str(e)}"
-
-
-
