@@ -36,8 +36,8 @@ To populate the application with demo contacts:
 ```
 
 Start the application:
-    ```bash
-    organizer
+```bash
+organizer
 ```
 
 ## Features
